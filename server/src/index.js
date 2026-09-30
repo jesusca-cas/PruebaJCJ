@@ -1,11 +1,15 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 import cors from "cors";
 import express from "express";
 import jwt from "jsonwebtoken";
-import { query } from "./db.js";
+import { query, waitForDb } from "./db.js";
 
 const PORT = Number(process.env.PORT || 3001);
 const JWT_SECRET = process.env.JWT_SECRET || "demo-secret-change-me";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const dist = path.join(__dirname, "../../client/dist");
 
 async function seed() {
   await query(`
@@ -39,12 +43,12 @@ function auth(req, res, next) {
 }
 
 const app = express();
-app.use(
-  cors({
-    origin: ["http://localhost:5173"],
-  })
-);
+app.use(cors({ origin: true }));
 app.use(express.json());
+
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true });
+});
 
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body || {};
@@ -66,7 +70,14 @@ app.get("/api/me", auth, (req, res) => {
   res.json({ user: req.user });
 });
 
+app.use(express.static(dist));
+app.use((req, res, next) => {
+  if (req.method !== "GET" || req.path.startsWith("/api")) return next();
+  res.sendFile(path.join(dist, "index.html"));
+});
+
+await waitForDb();
 await seed();
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`API en http://localhost:${PORT}`);
+  console.log(`App en puerto ${PORT}`);
 });
