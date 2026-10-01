@@ -70,3 +70,8 @@ button {
 .hint {
   font-size: 0.85rem;
 }
+
+button.login-button {
+  background: #22c55e;
+  color: #052e16;
+}

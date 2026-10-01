@@ -67,7 +67,7 @@ export default function App() {
         onChange={(e) => setPassword(e.target.value)}
         autoComplete="current-password"
       />
-      <button type="submit">Entrar</button>
+      <button className="login-button" type="submit">Entrar</button>
     </form>
   );
 }
